@@ -9,9 +9,36 @@ function RepliesHandler() {
       text: req.body.text,
       created_on: new Date(),
       bumped_on: new Date(),
-      
+      reported: false,
+      delete_password: req.delete_password,
+      replies: []
     }
+    mongo.connect(url, (err, db) => {
+      var collection = db.collection(board)
+      collection.insert(thread, () => {
+        res.redirect('/b' + board + '/')
+      })
+    })
   }
+  
+  this.threadList = (req, res) => {
+    var board = req.params.board
+    mongo.connect(url, (err, db) => {
+      var collection = db.collection(board)
+      collection.find(
+        {},
+        {
+          reported: 0,
+          delete_password: 0,
+          "replies.delete_password": 0,
+          "replies.reported": 0
+        })
+      .sort({bumped_on: -1})
+      .limit(10)
+      .toArray()
+    })
+  }
+  
 }
 
 module.exports = RepliesHandler
