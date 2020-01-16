@@ -18,7 +18,7 @@ function RepliesHandler() {
       var collection = db.collection(board)
       collection.insert(thread, () => {
         console.log('Redirecting ... ')
-        res.redirect('/b' + board + '/')
+        res.redirect('/b/' + board + '/')
       })
     })
   }
