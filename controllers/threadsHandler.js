@@ -35,7 +35,14 @@ function RepliesHandler() {
         })
       .sort({bumped_on: -1})
       .limit(10)
-      .toArray()
+      .toArray((err, docs) => {
+        docs.forEach((doc) => {
+          doc.replycount = doc.replies.length
+          if(doc.replies.length > 3) {
+            doc.replies = doc.replies.slice(-3)
+          }
+        })
+      })
     })
   }
   
