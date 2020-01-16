@@ -5,6 +5,7 @@ var url = process.env.DB
 function RepliesHandler() {
   this.newThread = function(req, res) {
     var board = req.params.board
+    console.log(board)
     var thread = {
       text: req.body.text,
       created_on: new Date(),
@@ -16,6 +17,7 @@ function RepliesHandler() {
     mongo.connect(url, (err, db) => {
       var collection = db.collection(board)
       collection.insert(thread, () => {
+        console.log('Redirecting ... ')
         res.redirect('/b' + board + '/')
       })
     })
