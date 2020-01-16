@@ -42,6 +42,8 @@ function RepliesHandler() {
             doc.replies = doc.replies.slice(-3)
           }
         })
+        console.log(docs)
+        res.json(docs)
       })
     })
   }

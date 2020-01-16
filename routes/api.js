@@ -16,7 +16,9 @@ module.exports = function (app) {
   var threadHandler = new ThreadHandler
   var replyHandler = new ThreadHandler
   
-  app.route('/api/threads/:board');
+  app.route('/api/threads/:board')
+    .get(threadHandler.threadList)
+    .post(threadHandler.newThread)
     
   app.route('/api/replies/:board');
 
