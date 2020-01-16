@@ -14,12 +14,14 @@ var ReplyHandler = require('../controllers/repliesHandler.js')
 
 module.exports = function (app) {
   var threadHandler = new ThreadHandler
-  var replyHandler = new ThreadHandler
+  var replyHandler = new ReplyHandler
   
   app.route('/api/threads/:board')
     .get(threadHandler.threadList)
     .post(threadHandler.newThread)
     
-  app.route('/api/replies/:board');
+  app.route('/api/replies/:board')
+    .get(replyHandler.replyList)
+    .post(replyHandler.newReply)
 
 };

@@ -2,7 +2,7 @@ var mongo = require('mongodb').MongoClient
 var ObjectId = require('mongodb').ObjectID
 var url = process.env.DB
 
-function ThreadsHandler() {
+function RepliesHandler() {
   this.newReply = (req, res) => {
     var board = req.params.board
     var reply = {
@@ -22,6 +22,7 @@ function ThreadsHandler() {
         $push: {replies: reply}
       })
     })
+    console.log('Redirecting to thread board ...')
     res.redirect('/b/' + board + '/' + req.body.thread_id)
   }
   
@@ -34,15 +35,16 @@ function ThreadsHandler() {
         {
           reported: 0,
           delete_password: 0,
-          'replies.delete_password': 0,
-          'replies.reported': 0
+          //'replies.delete_password': 0,
+          //'replies.reported': 0
         }
       )
       .toArray((err, doc) => {
+        console.log(doc[0])
         res.json(doc[0])
       })
     })
   }
 }
 
-module.exports = ThreadsHandler
+module.exports = RepliesHandler

@@ -2,7 +2,7 @@ var mongo = require('mongodb').MongoClient
 var ObjectId = require('mongodb').ObjectID
 var url = process.env.DB
 
-function RepliesHandler() {
+function ThreadsHandler() {
   this.newThread = function(req, res) {
     var board = req.params.board
     console.log(board)
@@ -52,4 +52,4 @@ function RepliesHandler() {
   
 }
 
-module.exports = RepliesHandler
+module.exports = ThreadsHandler
