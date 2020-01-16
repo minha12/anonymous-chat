@@ -11,7 +11,7 @@ function ThreadsHandler() {
       created_on: new Date(),
       bumped_on: new Date(),
       reported: false,
-      delete_password: req.query.delete_password,
+      delete_password: req.body.delete_password,
       replies: []
     }
     mongo.connect(url, (err, db) => {
@@ -52,10 +52,12 @@ function ThreadsHandler() {
   
   this.reportThread = (req, res) => {
     var board = req.params.board
+    console.log(req.query.thread_id)
+    console.log('xx: ' + req.body.thread_id)
     mongo.connect(url, (err, db) => {
       var collection = db.collection(board)
       collection.findAndModify(
-        {_id: new ObjectId(req.query.thread_id)},
+        {_id: new ObjectId(req.body.thread_id)},
         [],
         {
           $set: {reported: true}
@@ -72,8 +74,8 @@ function ThreadsHandler() {
       var collection = db.collection(board)
       collection.findAndModify(
         {
-          _id: new ObjectId(req.query.thread_id),
-          delete_password: req.query.delete_password
+          _id: new ObjectId(req.body.thread_id),
+          delete_password: req.body.delete_password
         },
         [],
         {},
