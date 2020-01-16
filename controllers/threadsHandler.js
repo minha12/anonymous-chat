@@ -11,7 +11,7 @@ function ThreadsHandler() {
       created_on: new Date(),
       bumped_on: new Date(),
       reported: false,
-      delete_password: req.delete_password,
+      delete_password: req.query.delete_password,
       replies: []
     }
     mongo.connect(url, (err, db) => {
@@ -30,8 +30,8 @@ function ThreadsHandler() {
       collection.find(
         {},
         {
-          reported: 0,
-          delete_password: 0,
+          //reported: 0,
+          //delete_password: 0,
           "replies.delete_password": 0,
           "replies.reported": 0
         })
@@ -61,13 +61,35 @@ function ThreadsHandler() {
           $set: {reported: true}
         }
       )
+      console.log('reported!')
       res.send('reported')
     })
   }
   
   this.deleteThread = (req, res) => {
     var board = req.params.board
-    mongo.
+    mongo.connect(url, (err, db) => {
+      var collection = db.collection(board)
+      collection.findAndModify(
+        {
+          _id: new ObjectId(req.query.thread_id),
+          delete_password: req.query.delete_password
+        },
+        [],
+        {},
+        {
+          remove: true, 
+          new: false
+        },
+        (err, doc) => {
+          if(doc.value === null) {
+            res.send('incorrect password')
+          }else{
+            res.send('success')
+          }
+        }
+      )
+    })
   }
   
 }
