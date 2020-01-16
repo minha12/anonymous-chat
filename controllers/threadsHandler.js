@@ -50,6 +50,26 @@ function ThreadsHandler() {
     })
   }
   
+  this.reportThread = (req, res) => {
+    var board = req.params.board
+    mongo.connect(url, (err, db) => {
+      var collection = db.collection(board)
+      collection.findAndModify(
+        {_id: new ObjectId(req.query.thread_id)},
+        [],
+        {
+          $set: {reported: true}
+        }
+      )
+      res.send('reported')
+    })
+  }
+  
+  this.deleteThread = (req, res) => {
+    var board = req.params.board
+    mongo.
+  }
+  
 }
 
 module.exports = ThreadsHandler

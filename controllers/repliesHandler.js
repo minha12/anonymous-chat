@@ -35,8 +35,8 @@ function RepliesHandler() {
         {
           reported: 0,
           delete_password: 0,
-          //'replies.delete_password': 0,
-          //'replies.reported': 0
+          'replies.delete_password': 0,
+          'replies.reported': 0
         }
       )
       .toArray((err, doc) => {
