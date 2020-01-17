@@ -47,6 +47,23 @@ function RepliesHandler() {
       })
     })
   }
+  
+  this.reportReply = (req, res) => {
+    var board = req.params.board
+    mongo.connect(url, (err, db) => {
+      var collection = db.collection(board)
+      collection.findAndModify(
+        {
+          _id: new ObjectId(req.body.thread_id),
+          'replies._id': new ObjectId(req.body.reply_id)
+        },
+        [],
+        {
+          $set: {}
+        }
+      )
+    })
+  }
 }
 
 module.exports = RepliesHandler
