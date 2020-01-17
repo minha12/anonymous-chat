@@ -14,10 +14,10 @@ var server = require('../server');
 chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
-
+  var test1Id
+  var test2Id
   suite('API ROUTING FOR /api/threads/:board', function() {
-    var test1Id
-    var test2Id
+    
     suite('POST', function(done) {
       chai.request(server)
         .post('/api/threads/anon')
@@ -33,7 +33,7 @@ suite('Functional Tests', function() {
       )
       
       chai.request(server)
-        .post('/api/threads/test')
+        .post('/api/threads/anon')
         .send(
         {
           text: 'thread2',
@@ -47,9 +47,9 @@ suite('Functional Tests', function() {
       
     });
     
-    suite('GET', function() {
+    suite('GET', function(done) {
       chai.request(server)
-        .get('/api/threads/test')
+        .get('/api/threads/anon')
         .end((err, res) => {
           assert.equal(res.status, 200)
           assert.isArray(res.body)
@@ -64,15 +64,35 @@ suite('Functional Tests', function() {
           assert.isBelow(res.body[0].replies.length, 4)
           test1Id = res.body[0]._id
           test2Id = res.body[1]._id
+          done()
       })
     });
     
-    suite('DELETE', function() {
-      
+    suite('DELETE', function(done) {
+      chai.request(server)
+        .delete('/api/threads/anon')
+        .send(
+        {
+          thread_id: test1Id,
+          delete_password: '12345'
+        }
+        .end((err, res) => {
+          assert.equal(res.status, 200)
+          assert.equal(res.text, 'success')
+          done()
+        })
+      )
     });
     
-    suite('PUT', function() {
-      
+    suite('PUT', function(done) {
+      chai.request(server)
+        .put('/api/threads/anon')
+        .send( { thread_id: test1Id } )
+        .end((err, res) => {
+          assert.equal(res.status, 200)
+          assert.equal(res.text, 'reported')
+          done()
+      })
     });
     
 
@@ -80,7 +100,14 @@ suite('Functional Tests', function() {
   
   suite('API ROUTING FOR /api/replies/:board', function() {
     
-    suite('POST', function() {
+    suite('POST', function(done) {
+      chai.request(server)
+        .post('/api/replies/anon')
+        .send(
+        {
+          thread_id: test2Id, 
+        }
+      )
       
     });
     

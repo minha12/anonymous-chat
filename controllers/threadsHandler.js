@@ -52,8 +52,8 @@ function ThreadsHandler() {
   
   this.reportThread = (req, res) => {
     var board = req.params.board
-    console.log(req.query.thread_id)
-    console.log('xx: ' + req.body.thread_id)
+    //console.log(req.query.thread_id)
+    //console.log('xx: ' + req.body.thread_id)
     mongo.connect(url, (err, db) => {
       var collection = db.collection(board)
       collection.findAndModify(
