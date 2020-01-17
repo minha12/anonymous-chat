@@ -26,25 +26,25 @@ suite('Functional Tests', function() {
         {
           text: 'thread1',
           delete_password: '12345'
-        }
+        })
         .end((err, res) => {
           assert.equal(res.status, 200)
-          done()
+          
         })
-      )
       
+    
       chai.request(server)
         .post('/api/threads/anon')
         .send(
         {
           text: 'thread2',
           delete_password: '12345'
-        }
+        })
         .end((err, res) => {
           assert.equal(res.status, 200)
           done()
         })
-      )
+      
       
     });
     
@@ -127,18 +127,30 @@ suite('Functional Tests', function() {
           assert.equal(res.body.replies[0].text, 'hi')
           assert.notProperty(res.body.replies[0], 'reported')
           assert.notProperty(res.body.replies[0], 'delete_password')
-          replyId = 
+          replyId = res.body.replies[0]._id
           done()
       })
     });
     
-    suite('PUT', function() {
+    suite('PUT', function(done) {
       chai.request(server)
-        .put({thread_id: test2Id, reply_id: })
+        .put('/api/replies/anon')
+        .send({thread_id: test2Id, reply_id: replyId})
+        .end((err, res) => {
+          assert.equal(res.status, 200)
+          assert.equal(res.text, 'reported reply: ' + replyId)
+          done()
+      })
     });
     
     suite('DELETE', function() {
-      
+      chai.request(server)
+        .delete('/api/replies/anon')
+        .send({thread_id: test2Id, reply_id: replyId, delete_password: '11111'})
+        .end((err, res) => {
+          assert.equal(res.status, 200)
+          assert.equal(res.text, 'success delete ' + replyId )
+      })
     });
     
   });
