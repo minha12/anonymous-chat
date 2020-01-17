@@ -30,8 +30,8 @@ function ThreadsHandler() {
       collection.find(
         {},
         {
-          //reported: 0,
-          //delete_password: 0,
+          reported: 0,
+          delete_password: 0,
           "replies.delete_password": 0,
           "replies.reported": 0
         })

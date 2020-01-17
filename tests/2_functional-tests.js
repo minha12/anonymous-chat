@@ -16,6 +16,7 @@ chai.use(chaiHttp);
 suite('Functional Tests', function() {
   var test1Id
   var test2Id
+  var replyId
   suite('API ROUTING FOR /api/threads/:board', function() {
     
     suite('POST', function(done) {
@@ -106,17 +107,34 @@ suite('Functional Tests', function() {
         .send(
         {
           thread_id: test2Id, 
+          text: 'hi',
+          delete_password: '11111'
         }
+        .end((err, res) => {
+          assert.equal(res.status, 200)
+          done()
+        })
       )
       
     });
     
-    suite('GET', function() {
-      
+    suite('GET', function(done) {
+      chai.request(server)
+        .get('/api/replies/anon')
+        .send({thread_id: test2Id})
+        .end((err, res) => {
+          assert.equal(res.status, 200)
+          assert.equal(res.body.replies[0].text, 'hi')
+          assert.notProperty(res.body.replies[0], 'reported')
+          assert.notProperty(res.body.replies[0], 'delete_password')
+          replyId = 
+          done()
+      })
     });
     
     suite('PUT', function() {
-      
+      chai.request(server)
+        .put({thread_id: test2Id, reply_id: })
     });
     
     suite('DELETE', function() {
