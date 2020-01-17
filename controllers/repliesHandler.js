@@ -59,7 +59,30 @@ function RepliesHandler() {
         },
         [],
         {
-          $set: {}
+          $set: {'replies.$.reported': true}
+        }
+      )
+    })
+    res.send('reported reply: ' + req.body.reply_id)
+  }
+  
+  this.deleteReply = (req, res) => {
+    var board = req.params.board
+    mongo.connect(url, (err, db) => {
+      var collection = db.collection(board)
+      collection.findAndModify(
+        {
+          _id: new ObjectId(req.body.thread_id),
+          replies: {$elemMatch: { _id: new ObjectId(req.body.reply_id), delete_password: req.body.delete_password}}
+        },
+        [],
+        { $set: { 'replies.$.text': '[deleted]'}},
+        (err, doc) => {
+          if(doc.value === null) {
+            res.send('incorrect password')
+          }else {
+            res.send('success delete ' + req.body.reply_id)
+          }
         }
       )
     })
