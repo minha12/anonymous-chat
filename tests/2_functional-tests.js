@@ -83,13 +83,13 @@ suite('Functional Tests', function() {
         {
           thread_id: test1Id,
           delete_password: '12345'
-        }
+        })
         .end((err, res) => {
           assert.equal(res.status, 200)
           assert.equal(res.text, 'success')
           done()
         })
-      )
+      
       })
       
     });
@@ -122,12 +122,12 @@ suite('Functional Tests', function() {
           thread_id: test2Id, 
           text: 'hi',
           delete_password: '11111'
-        }
+        })
         .end((err, res) => {
           assert.equal(res.status, 200)
           done()
         })
-      )
+      
       })
       
       
@@ -137,9 +137,10 @@ suite('Functional Tests', function() {
       test('get a reply', (done) => {
         chai.request(server)
         .get('/api/replies/anon')
-        .send({thread_id: test2Id})
+        .query({thread_id: test2Id})
         .end((err, res) => {
           assert.equal(res.status, 200)
+          console.log(res.body)
           assert.equal(res.body.replies[0].text, 'hi')
           assert.notProperty(res.body.replies[0], 'reported')
           assert.notProperty(res.body.replies[0], 'delete_password')
@@ -172,6 +173,7 @@ suite('Functional Tests', function() {
         .end((err, res) => {
           assert.equal(res.status, 200)
           assert.equal(res.text, 'success delete ' + replyId )
+          done()
       })
       })
       
