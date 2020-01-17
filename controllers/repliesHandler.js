@@ -28,6 +28,8 @@ function RepliesHandler() {
   
   this.replyList = (req, res) => {
     var board = req.params.board
+    console.log('query: ' + req.query.thread_id)
+    console.log('body: ' + req.body.thread_id)
     mongo.connect(url, (err, db) => {
       var collection = db.collection(board)
       collection.find(
