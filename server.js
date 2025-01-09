@@ -11,6 +11,17 @@ var runner            = require('./test-runner');
 
 var app = express();
 
+// Add security headers middleware
+app.use((req, res, next) => {
+  // Only allow site to be loaded in iframes on own pages
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  // Disable DNS prefetching
+  res.setHeader('X-DNS-Prefetch-Control', 'off');
+  // Only send referrer for own pages
+  res.setHeader('Referrer-Policy', 'same-origin');
+  next();
+});
+
 app.use('/public', express.static(process.cwd() + '/public'));
 
 app.use(cors({origin: '*'})); //For FCC testing purposes only
