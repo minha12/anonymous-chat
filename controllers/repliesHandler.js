@@ -20,6 +20,15 @@ async function connectDB() {
 }
 
 function RepliesHandler() {
+  // Helper function to validate MongoDB ObjectId
+  function isValidObjectId(id) {
+    try {
+      return ObjectId.isValid(id) && (String)(new ObjectId(id)) === id;
+    } catch (e) {
+      return false;
+    }
+  }
+
   this.newReply = async (req, res) => {
     var board = req.params.board;
     var reply = {
@@ -59,6 +68,11 @@ function RepliesHandler() {
   this.replyList = async (req, res) => {
     var board = req.params.board;
     try {
+      // Validate thread_id before querying
+      if (!req.query.thread_id || !isValidObjectId(req.query.thread_id)) {
+        return res.status(400).json({ error: 'Invalid thread ID format' });
+      }
+
       const db = await connectDB();
       const collection = db.collection(board);
       const doc = await collection.findOne(
@@ -72,6 +86,11 @@ function RepliesHandler() {
           }
         }
       );
+      
+      if (!doc) {
+        return res.status(404).json({ error: 'Thread not found' });
+      }
+      
       res.json(doc);
     } catch (err) {
       console.error('Database error:', err);
@@ -82,6 +101,10 @@ function RepliesHandler() {
   this.reportReply = async (req, res) => {
     var board = req.params.board;
     try {
+      if (!isValidObjectId(req.body.thread_id) || !isValidObjectId(req.body.reply_id)) {
+        return res.status(400).json({ error: 'Invalid ID format' });
+      }
+
       const db = await connectDB();
       const collection = db.collection(board);
       await collection.findOneAndUpdate(
@@ -103,6 +126,10 @@ function RepliesHandler() {
   this.deleteReply = async (req, res) => {
     var board = req.params.board;
     try {
+      if (!isValidObjectId(req.body.thread_id) || !isValidObjectId(req.body.reply_id)) {
+        return res.status(400).json({ error: 'Invalid ID format' });
+      }
+
       const db = await connectDB();
       const collection = db.collection(board);
       const result = await collection.findOneAndUpdate(
