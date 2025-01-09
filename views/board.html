@@ -1,127 +1,297 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Welcome to HyperDev!</title>
-    <meta name="description" content="A cool thing made with HyperDev">
-    <link id="favicon" rel="icon" href="https://hyperdev.com/favicon-app.ico" type="image/x-icon">
+<html lang="en">
+<head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/public/style.css">
-  </head>
-  <body>
-    <header>
-      <h1 id='boardTitle'></h1>
-    </header>
-    
-    <div id='submitNewThread'>
-      <h3>Submit a new thread:</h3>
-      <form id="newThread" method="post" action="/api/">
-        <textarea rows="8" cols="120" type='text' placeholder='Thread text...' name='text' required=''></textarea><br>
-        <input type='text' placeholder='password to delete' name='delete_password' required=''><br>
-        <input type="submit" value="Submit">
-      </form>
+    <title>Board - Anonymous Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .thread-card { margin-bottom: 1rem; }
+        .reply-card { margin-left: 2rem; background: #f8f9fa; }
+        .action-buttons { font-size: 0.8rem; }
+        .thread-meta { color: #6c757d; font-size: 0.875rem; }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-chat-dots"></i> Anonymous Chat</a>
+            <span class="navbar-text" id="boardTitle"></span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- New Thread Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Create New Thread</h5>
+                <form id="newThread" method="post">
+                    <div class="mb-3">
+                        <textarea class="form-control" rows="3" name="text" placeholder="What's on your mind?" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <input type="password" class="form-control" name="delete_password" placeholder="Deletion password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Post Thread</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Threads Display -->
+        <div id="boardDisplay">
+            <!-- Threads will be dynamically inserted here -->
+        </div>
     </div>
-    
-    <div id='boardDisplay'></div>
-    
-    <hr style='margin: 50px; margin-top: 200px'>
-    
-    <script src="https://code.jquery.com/jquery-2.2.1.min.js"
-            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
-            crossorigin="anonymous"></script>
+
+    <!-- Toast container -->
+    <div class="toast-container">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-      $(function() {
-        var currentBoard = window.location.pathname.slice(3,-1);
-        var url = "/api/threads/"+currentBoard;
-        $('#boardTitle').text('Welcome to '+window.location.pathname)
-        $.ajax({
-          type: "GET",
-          url: url,
-          success: function(data)
-          {
-            var boardThreads= [];
-            //
-            // THIS ARRAY SET UP IS FOR CODE READABILITIES AND TESTING!
-            // THIS IS NOT WHAT IT WOULD LOOK LIKE TO GO LIVE
-            //
-            data.forEach(function(ele) {
-              console.log(ele);//can I use typeScript please?!
-              var thread = ['<div class="thread">'];
-              thread.push('<div class="main">')
-              thread.push('<p class="id">id: '+ele._id+' ('+ele.created_on+')</p>');
-              thread.push('<form id="reportThread"><input type="hidden" name="report_id" value="'+ele._id+'"><input type="submit" value="Report"></form>');
-              thread.push('<form id="deleteThread"><input type="hidden" value="'+ele._id+'" name="thread_id" required=""><input type="text" placeholder="password" name="delete_password" required=""><input type="submit" value="Delete"></form>');
-              thread.push('<h3>'+ele.text+'</h3>');
-              thread.push('</div><div class="replies">');
-              var hiddenCount = ele.replycount - 3;
-              if (hiddenCount < 1) { hiddenCount = 0 };
-              thread.push('<h5>'+ele.replycount+' replies total ('+hiddenCount+' hidden)- <a href="'+window.location.pathname+ele._id+'">See the full thread here</a>.</h5>');
-              ele.replies.forEach(function(rep) {
-                thread.push('<div class="reply">')
-                thread.push('<p class="id">id: '+rep._id+' ('+rep.created_on+')</p>');
-                thread.push('<form id="reportReply"><input type="hidden" name="thread_id" value="'+ele._id+'"><input type="hidden" name="reply_id" value="'+rep._id+'"><input type="submit" value="Report"></form>');
-                thread.push('<form id="deleteReply"><input type="hidden" value="'+ele._id+'" name="thread_id" required=""><input type="hidden" value="'+rep._id+'" name="reply_id" required=""><input type="text" placeholder="password" name="delete_password" required=""><input type="submit" value="Delete"></form>');
-                thread.push('<p>'+rep.text+'</p>');
-                thread.push('</div>')
-              });
-              thread.push('<div class="newReply">')
-              thread.push('<form action="/api/replies/'+currentBoard+'/" method="post" id="newReply">');
-              thread.push('<input type="hidden" name="thread_id" value="'+ele._id+'">');
-              thread.push('<textarea rows="5" cols="80" type="text" placeholder="Quick reply..." name="text" required=""></textarea><br>');
-              thread.push('<input type="text" placeholder="password to delete" name="delete_password" required=""><input style="margin-left: 5px" type="submit" value="Submit">')
-              thread.push('</form></div></div></div>')
-              boardThreads.push(thread.join(''));
+        function showToast(message, type = 'success') {
+            const toastHtml = `
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header bg-${type} text-white">
+                        <strong class="me-auto">${type === 'success' ? 'Success' : 'Error'}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            const toastContainer = $('.toast-container');
+            toastContainer.append(toastHtml);
+            
+            const toastElement = toastContainer.find('.toast').last();
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: 3000
             });
-            $('#boardDisplay').html(boardThreads.join(''));
-          }
+            toast.show();
+            
+            // Remove toast element after it's hidden
+            toastElement.on('hidden.bs.toast', function() {
+                $(this).remove();
+            });
+        }
+
+        $(function() {
+            var currentBoard = window.location.pathname.slice(3,-1);
+            var url = "/api/threads/"+currentBoard;
+            $('#boardTitle').text('Welcome to '+window.location.pathname)
+            $.ajax({
+                type: "GET",
+                url: url,
+                success: function(data)
+                {
+                    var boardThreads= [];
+                    data.forEach(function(ele) {
+                        boardThreads.push(createThreadCard(ele));
+                    });
+                    $('#boardDisplay').html(boardThreads.join(''));
+                }
+            });
+
+            $('#newThread').submit(function(e){
+                e.preventDefault();
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/threads/' + currentBoard,
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            // Clear form
+                            $('#newThread')[0].reset();
+                            // Reload threads
+                            loadThreads();
+                            showToast('Thread posted successfully');
+                        }
+                    },
+                    error: function(err) {
+                        showToast('Error creating thread: ' + (err.responseJSON?.error || 'Unknown error'), 'danger');
+                    }
+                });
+            });
+
+            function loadThreads() {
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    success: function(data) {
+                        var boardThreads = data.map(ele => createThreadCard(ele));
+                        $('#boardDisplay').html(boardThreads.join(''));
+                    }
+                });
+            }
+
+            $('#boardDisplay').on('click', '.report-thread', function() {
+                var threadId = $(this).data('id');
+                $.ajax({
+                    type: "PUT",
+                    url: "/api/threads/"+currentBoard,
+                    data: { report_id: threadId },
+                    success: function(data) {
+                        showToast('Thread reported successfully');
+                    },
+                    error: function(err) {
+                        showToast('Error reporting thread', 'danger');
+                    }
+                });
+            });
+
+            $('#boardDisplay').on('click', '.delete-thread', function() {
+                var threadId = $(this).data('id');
+                var password = prompt("Enter deletion password:");
+                if (password) {
+                    $.ajax({
+                        type: "DELETE",
+                        url: "/api/threads/"+currentBoard,
+                        data: { thread_id: threadId, delete_password: password },
+                        success: function(data) {
+                            showToast('Thread deleted successfully');
+                        },
+                        error: function(err) {
+                            showToast('Error deleting thread: ' + (err.responseJSON?.error || 'Unknown error'), 'danger');
+                        }
+                    });
+                }
+            });
+
+            $('#boardDisplay').on('click', '.report-reply', function() {
+                var threadId = $(this).data('thread');
+                var replyId = $(this).data('reply');
+                $.ajax({
+                    type: "PUT",
+                    url: "/api/replies/"+currentBoard,
+                    data: { thread_id: threadId, reply_id: replyId },
+                    success: function(data) {
+                        showToast('Reply reported successfully');
+                    },
+                    error: function(err) {
+                        showToast('Error reporting reply', 'danger');
+                    }
+                });
+            });
+
+            $('#boardDisplay').on('click', '.delete-reply', function() {
+                var threadId = $(this).data('thread');
+                var replyId = $(this).data('reply');
+                var password = prompt("Enter deletion password:");
+                if (password) {
+                    $.ajax({
+                        type: "DELETE",
+                        url: "/api/replies/"+currentBoard,
+                        data: { thread_id: threadId, reply_id: replyId, delete_password: password },
+                        success: function(data) {
+                            showToast('Reply deleted successfully');
+                        },
+                        error: function(err) {
+                            showToast('Error deleting reply: ' + (err.responseJSON?.error || 'Unknown error'), 'danger');
+                        }
+                    });
+                }
+            });
+
+            $('#boardDisplay').on('submit', '.reply-form', function(e) {
+                e.preventDefault();
+                var form = $(this);
+                
+                $.ajax({
+                    type: "POST",
+                    url: "/api/replies/"+currentBoard,
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            // Clear form
+                            form[0].reset();
+                            // Reload the entire thread list to show updated content
+                            loadThreads();
+                            // Optional: Show success message
+                            showToast('Reply posted successfully');
+                        }
+                    },
+                    error: function(err) {
+                        showToast('Error posting reply: ' + (err.responseJSON?.error || 'Unknown error'), 'danger');
+                    }
+                });
+            });
+
+            function createThreadCard(thread) {
+                return `
+                    <div class="card thread-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div class="thread-meta">
+                                    <i class="bi bi-hash"></i> ${thread._id}
+                                    <i class="bi bi-clock ms-2"></i> ${new Date(thread.created_on).toLocaleString()}
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-warning report-thread" data-id="${thread._id}">
+                                        <i class="bi bi-flag"></i> Report
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-thread" data-id="${thread._id}">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="card-text mt-2">${thread.text}</p>
+                            
+                            <!-- Replies Section -->
+                            <div class="replies mt-3">
+                                ${thread.replies.map(reply => createReplyCard(reply, thread._id)).join('')}
+                            </div>
+
+                            <!-- Reply Form -->
+                            <form class="mt-3 reply-form">
+                                <input type="hidden" name="thread_id" value="${thread._id}">
+                                <div class="mb-2">
+                                    <textarea class="form-control" rows="2" name="text" placeholder="Write a reply..." required></textarea>
+                                </div>
+                                <div class="mb-2">
+                                    <input type="password" class="form-control" name="delete_password" placeholder="Deletion password" required>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+                            </form>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function createReplyCard(reply, threadId) {
+                return `
+                    <div class="card reply-card mb-2">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">
+                                    <i class="bi bi-reply"></i> ${reply._id}
+                                    <i class="bi bi-clock ms-2"></i> ${new Date(reply.created_on).toLocaleString()}
+                                </small>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-warning report-reply" data-thread="${threadId}" data-reply="${reply._id}">
+                                        <i class="bi bi-flag"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-reply" data-thread="${threadId}" data-reply="${reply._id}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="card-text mt-2">${reply.text}</p>
+                        </div>
+                    </div>
+                `;
+            }
         });
-        
-        $('#newThread').submit(function(){
-          $(this).attr('action', "/api/threads/" + currentBoard);
-        });
-        
-        $('#boardDisplay').on('submit','#reportThread', function(e) {
-          var url = "/api/threads/"+currentBoard;
-          $.ajax({
-            type: "PUT",
-            url: url,
-            data: $(this).serialize(),
-            success: function(data) { alert(data) }
-          });
-          e.preventDefault();
-        });
-        $('#boardDisplay').on('submit','#reportReply', function(e) {
-          var url = "/api/replies/"+currentBoard;
-          $.ajax({
-            type: "PUT",
-            url: url,
-            data: $(this).serialize(),
-            success: function(data) { alert(data) }
-          });
-          e.preventDefault();
-        });
-        $('#boardDisplay').on('submit','#deleteThread', function(e) {
-          var url = "/api/threads/"+currentBoard;
-          $.ajax({
-            type: "DELETE",
-            url: url,
-            data: $(this).serialize(),
-            success: function(data) { alert(data) }
-          });
-          e.preventDefault();
-        });        
-        $('#boardDisplay').on('submit','#deleteReply', function(e) {
-          var url = "/api/replies/"+currentBoard;
-          $.ajax({
-            type: "DELETE",
-            url: url,
-            data: $(this).serialize(),
-            success: function(data) { alert(data) }
-          });
-          e.preventDefault();
-        });              
-      });
-   </script>
-  </body>
+    </script>
+</body>
 </html>
