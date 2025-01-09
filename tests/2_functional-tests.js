@@ -11,6 +11,9 @@ var chai = require("chai");
 var assert = chai.assert;
 var server = require("../server");
 
+var mocha = require('mocha');
+var { suite, test } = mocha;
+
 chai.use(chaiHttp);
 
 suite("Functional Tests", function() {
@@ -20,6 +23,7 @@ suite("Functional Tests", function() {
   suite("API ROUTING FOR /api/threads/:board", function() {
     suite("POST", function() {
       test("create 2 threads", done => {
+        // Create first thread
         chai
           .request(server)
           .post("/api/threads/anon")
@@ -29,18 +33,23 @@ suite("Functional Tests", function() {
           })
           .end((err, res) => {
             assert.equal(res.status, 200);
-          });
-
-        chai
-          .request(server)
-          .post("/api/threads/anon")
-          .send({
-            text: "thread2",
-            delete_password: "12345"
-          })
-          .end((err, res) => {
-            assert.equal(res.status, 200);
-            done();
+            assert.property(res.body, '_id');
+            test1Id = res.body._id;
+            
+            // Create second thread only after first is done
+            chai
+              .request(server)
+              .post("/api/threads/anon")
+              .send({
+                text: "thread2",
+                delete_password: "12345"
+              })
+              .end((err, res) => {
+                assert.equal(res.status, 200);
+                assert.property(res.body, '_id');
+                test2Id = res.body._id;
+                done();
+              });
           });
       });
     });
@@ -51,6 +60,11 @@ suite("Functional Tests", function() {
           .request(server)
           .get("/api/threads/anon")
           .end((err, res) => {
+            // Add debug log
+            console.log("Thread IDs from GET:", {
+              thread1: res.body[0]._id,
+              thread2: res.body[1]._id
+            });
             assert.equal(res.status, 200);
             assert.isArray(res.body);
             assert.isBelow(res.body.length, 11);
@@ -62,8 +76,9 @@ suite("Functional Tests", function() {
             assert.notProperty(res.body[0], "delete_password");
             assert.isArray(res.body[0].replies);
             assert.isBelow(res.body[0].replies.length, 4);
-            test1Id = res.body[0]._id;
-            test2Id = res.body[1]._id;
+            // Fix the ID assignments - swap them to match the creation order
+            test1Id = res.body[1]._id;  // thread1
+            test2Id = res.body[0]._id;  // thread2
             done();
           });
       });
@@ -71,18 +86,24 @@ suite("Functional Tests", function() {
 
     suite("DELETE", function() {
       test("delete thread", done => {
-        chai
-          .request(server)
-          .delete("/api/threads/anon")
-          .send({
-            thread_id: test1Id,
-            delete_password: "12345"
-          })
-          .end((err, res) => {
-            assert.equal(res.status, 200);
-            assert.equal(res.text, "success");
-            done();
-          });
+        // Add delay to ensure previous operations completed
+        setTimeout(() => {
+          console.log("Attempting to delete thread ID:", test1Id);
+          chai
+            .request(server)
+            .delete("/api/threads/anon")
+            .send({
+              thread_id: test1Id,
+              delete_password: "12345"
+            })
+            .end((err, res) => {
+              // Add debug log
+              console.log("Delete response:", res.text);
+              assert.equal(res.status, 200);
+              assert.equal(res.text, "success");
+              done();
+            });
+        }, 500);
       });
     });
 
