@@ -17,6 +17,11 @@ module.exports = function (app) {
   var threadHandler = new ThreadHandler
   var replyHandler = new ReplyHandler
   
+  // Add new route for getting board stats
+  app.route('/api/boards')
+    .get(threadHandler.getBoardStats)
+    .post(threadHandler.createBoard)
+  
   app.route('/api/threads/:board')
     .get(threadHandler.threadList)
     .post(threadHandler.newThread)
