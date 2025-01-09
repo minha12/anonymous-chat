@@ -9,13 +9,14 @@ const client = new MongoClient(process.env.DB, {
   }
 });
 
-// Connect to MongoDB once
+// Connect to MongoDB once and use specific database
 let connected = false;
 async function connectDB() {
   if (!connected) {
     await client.connect();
     connected = true;
   }
+  return client.db('anonymous_chat'); // Explicitly specify database name
 }
 
 function ThreadsHandler() {
@@ -33,11 +34,14 @@ function ThreadsHandler() {
     };
 
     try {
-      await connectDB();
-      const collection = client.db().collection(board);
+      const db = await connectDB();
+      const collection = db.collection(board);
       await collection.insertOne(thread);
-      // Return JSON instead of redirect for API consistency
-      res.json({ success: true, _id: thread._id });
+      res.json({ 
+        success: true, 
+        _id: thread._id,
+        message: 'Thread created successfully'
+      });
     } catch (err) {
       console.error('Database error:', err);
       res.status(500).json({ error: 'Error accessing database' });
@@ -47,8 +51,8 @@ function ThreadsHandler() {
   this.threadList = async (req, res) => {
     var board = req.params.board;
     try {
-      await connectDB();
-      const collection = client.db().collection(board);
+      const db = await connectDB();
+      const collection = db.collection(board);
       const docs = await collection
         .find(
           {},
@@ -81,8 +85,8 @@ function ThreadsHandler() {
   this.reportThread = async (req, res) => {
     var board = req.params.board;
     try {
-      await connectDB();
-      const collection = client.db().collection(board);
+      const db = await connectDB();
+      const collection = db.collection(board);
       await collection.findOneAndUpdate(
         { _id: new ObjectId(req.body.thread_id) },
         { $set: { reported: true } }
@@ -97,8 +101,8 @@ function ThreadsHandler() {
   this.deleteThread = async (req, res) => {
     var board = req.params.board;
     try {
-      await connectDB();
-      const collection = client.db().collection(board);
+      const db = await connectDB();
+      const collection = db.collection(board);
       const thread = await collection.findOne({
         _id: new ObjectId(req.body.thread_id),
         delete_password: req.body.delete_password
@@ -116,6 +120,37 @@ function ThreadsHandler() {
     } catch (err) {
       console.error('Database error:', err);
       res.status(500).json({ error: 'Error accessing database' });
+    }
+  };
+
+  this.getBoardStats = async function(req, res) {
+    try {
+      const db = await connectDB();
+      const collections = await db.listCollections().toArray();
+      const stats = await Promise.all(collections.map(async (coll) => {
+        if (coll.name.startsWith('system.')) return null; // Skip system collections
+        const count = await db.collection(coll.name).countDocuments();
+        return {
+          name: coll.name,
+          threadCount: count
+        };
+      }));
+      res.json(stats.filter(Boolean)); // Remove null entries
+    } catch (err) {
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Error accessing database' });
+    }
+  };
+
+  this.createBoard = async function(req, res) {
+    const boardName = req.body.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    try {
+      const db = await connectDB();
+      await db.createCollection(boardName);
+      res.json({ success: true, board: boardName });
+    } catch (err) {
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Error creating board' });
     }
   };
 }

@@ -16,6 +16,7 @@ async function connectDB() {
     await client.connect();
     connected = true;
   }
+  return client.db('anonymous_chat'); // Explicitly specify database name
 }
 
 function RepliesHandler() {
@@ -30,8 +31,8 @@ function RepliesHandler() {
     };
 
     try {
-      await connectDB();
-      const collection = client.db().collection(board);
+      const db = await connectDB();
+      const collection = db.collection(board);
       await collection.findOneAndUpdate(
         { _id: new ObjectId(req.body.thread_id) },
         {
@@ -39,7 +40,16 @@ function RepliesHandler() {
           $push: { replies: reply }
         }
       );
-      res.redirect("/b/" + board + "/" + req.body.thread_id);
+      // Return JSON instead of redirect
+      res.json({ 
+        success: true, 
+        message: 'Reply added successfully',
+        reply: {
+          _id: reply._id,
+          text: reply.text,
+          created_on: reply.created_on
+        }
+      });
     } catch (err) {
       console.error('Database error:', err);
       res.status(500).json({ error: 'Error accessing database' });
@@ -49,8 +59,8 @@ function RepliesHandler() {
   this.replyList = async (req, res) => {
     var board = req.params.board;
     try {
-      await connectDB();
-      const collection = client.db().collection(board);
+      const db = await connectDB();
+      const collection = db.collection(board);
       const doc = await collection.findOne(
         { _id: new ObjectId(req.query.thread_id) },
         {
@@ -72,8 +82,8 @@ function RepliesHandler() {
   this.reportReply = async (req, res) => {
     var board = req.params.board;
     try {
-      await connectDB();
-      const collection = client.db().collection(board);
+      const db = await connectDB();
+      const collection = db.collection(board);
       await collection.findOneAndUpdate(
         {
           _id: new ObjectId(req.body.thread_id),
@@ -93,8 +103,8 @@ function RepliesHandler() {
   this.deleteReply = async (req, res) => {
     var board = req.params.board;
     try {
-      await connectDB();
-      const collection = client.db().collection(board);
+      const db = await connectDB();
+      const collection = db.collection(board);
       const result = await collection.findOneAndUpdate(
         {
           _id: new ObjectId(req.body.thread_id),
