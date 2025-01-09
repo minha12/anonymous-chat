@@ -1,12 +1,29 @@
-var mongo = require("mongodb").MongoClient;
-var ObjectId = require("mongodb").ObjectID;
-var url = process.env.DB;
+const { MongoClient, ObjectId, ServerApiVersion } = require("mongodb");
+require('dotenv').config();
+
+const client = new MongoClient(process.env.DB, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
+
+// Connect to MongoDB once
+let connected = false;
+async function connectDB() {
+  if (!connected) {
+    await client.connect();
+    connected = true;
+  }
+}
 
 function ThreadsHandler() {
-  this.newThread = function(req, res) {
+  this.newThread = async function(req, res) {
     var board = req.params.board;
     console.log(board);
     var thread = {
+      _id: new ObjectId(),  // Explicitly set ID
       text: req.body.text,
       created_on: new Date(),
       bumped_on: new Date(),
@@ -14,82 +31,92 @@ function ThreadsHandler() {
       delete_password: req.body.delete_password,
       replies: []
     };
-    mongo.connect(url, (err, db) => {
-      var collection = db.collection(board);
-      collection.insert(thread, () => {
-        console.log("Redirecting ... ");
-        res.redirect("/b/" + board + "/");
-      });
-    });
+
+    try {
+      await connectDB();
+      const collection = client.db().collection(board);
+      await collection.insertOne(thread);
+      // Return JSON instead of redirect for API consistency
+      res.json({ success: true, _id: thread._id });
+    } catch (err) {
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Error accessing database' });
+    }
   };
 
-  this.threadList = (req, res) => {
+  this.threadList = async (req, res) => {
     var board = req.params.board;
-    mongo.connect(url, (err, db) => {
-      var collection = db.collection(board);
-      collection
+    try {
+      await connectDB();
+      const collection = client.db().collection(board);
+      const docs = await collection
         .find(
           {},
           {
-            reported: 0,
-            delete_password: 0,
-            "replies.delete_password": 0,
-            "replies.reported": 0
+            projection: {
+              reported: 0,
+              delete_password: 0,
+              "replies.delete_password": 0,
+              "replies.reported": 0
+            }
           }
         )
         .sort({ bumped_on: -1 })
         .limit(10)
-        .toArray((err, docs) => {
-          docs.forEach(doc => {
-            doc.replycount = doc.replies.length;
-            if (doc.replies.length > 3) {
-              doc.replies = doc.replies.slice(-3);
-            }
-          });
-          console.log(docs);
-          res.json(docs);
-        });
-    });
-  };
+        .toArray();
 
-  this.reportThread = (req, res) => {
-    var board = req.params.board;
-    //console.log(req.query.thread_id)
-    //console.log('xx: ' + req.body.thread_id)
-    mongo.connect(url, (err, db) => {
-      var collection = db.collection(board);
-      collection.findAndModify({ _id: new ObjectId(req.body.thread_id) }, [], {
-        $set: { reported: true }
-      });
-      console.log("reported!");
-      res.send("reported");
-    });
-  };
-
-  this.deleteThread = (req, res) => {
-    var board = req.params.board;
-    mongo.connect(url, (err, db) => {
-      var collection = db.collection(board);
-      collection.findAndModify(
-        {
-          _id: new ObjectId(req.body.thread_id),
-          delete_password: req.body.delete_password
-        },
-        [],
-        {},
-        {
-          remove: true,
-          new: false
-        },
-        (err, doc) => {
-          if (doc.value === null) {
-            res.send("incorrect password");
-          } else {
-            res.send("success");
-          }
+      docs.forEach(doc => {
+        doc.replycount = doc.replies.length;
+        if (doc.replies.length > 3) {
+          doc.replies = doc.replies.slice(-3);
         }
+      });
+      res.json(docs);
+    } catch (err) {
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Error accessing database' });
+    }
+  };
+
+  this.reportThread = async (req, res) => {
+    var board = req.params.board;
+    try {
+      await connectDB();
+      const collection = client.db().collection(board);
+      await collection.findOneAndUpdate(
+        { _id: new ObjectId(req.body.thread_id) },
+        { $set: { reported: true } }
       );
-    });
+      res.send("reported");
+    } catch (err) {
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Error accessing database' });
+    }
+  };
+
+  this.deleteThread = async (req, res) => {
+    var board = req.params.board;
+    try {
+      await connectDB();
+      const collection = client.db().collection(board);
+      const thread = await collection.findOne({
+        _id: new ObjectId(req.body.thread_id),
+        delete_password: req.body.delete_password
+      });
+
+      if (!thread) {
+        return res.send("incorrect password");
+      }
+
+      await collection.deleteOne({
+        _id: new ObjectId(req.body.thread_id)
+      });
+      
+      res.send("success");
+    } catch (err) {
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Error accessing database' });
+    }
   };
 }
 
