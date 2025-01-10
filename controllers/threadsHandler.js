@@ -163,12 +163,21 @@ function ThreadsHandler() {
           .filter(coll => !coll.name.startsWith('system.'))
           .map(async (coll) => {
             const topThreads = await this.getTopThreadsForBoard(coll.name);
+            // Get the most recent bumped_on date from threads
+            const latestActivity = topThreads.length > 0 
+              ? Math.max(...topThreads.map(t => new Date(t.bumped_on).getTime()))
+              : 0;
             return {
               name: coll.name,
-              threads: topThreads
+              threads: topThreads,
+              latestActivity: latestActivity
             };
           })
       );
+      
+      // Sort boards by latest activity
+      boardsData.sort((a, b) => b.latestActivity - a.latestActivity);
+      
       res.json(boardsData);
     } catch (err) {
       console.error('Database error:', err);
