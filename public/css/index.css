@@ -1,6 +1,56 @@
-.api-method { font-weight: bold; padding: 2px 8px; border-radius: 4px; }
+.api-method { 
+    font-weight: bold; 
+    padding: 2px 8px; 
+    border-radius: 4px; 
+    margin: 2px;
+}
 .get { background: #e7f5ff; color: #1971c2; }
 .post { background: #ebfbee; color: #2b8a3e; }
 .put { background: #fff3bf; color: #94710b; }
 .delete { background: #fff5f5; color: #c92a2a; }
-.api-doc { border-left: 4px solid #dee2e6; padding: 1rem; margin: 1rem 0; }
+
+.api-endpoint {
+    border-left: 4px solid #66a4e1;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+}
+
+.method-url {
+    background: #e9ecef;  /* Changed to a lighter, neutral gray that matches Bootstrap's color scheme */
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.api-body-section {
+    background: #212529;  /* Changed to Bootstrap's dark color for better contrast and theme matching */
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+    color: #f8f9fa; /* Added light color for text */
+}
+
+.api-note {
+    margin-top: 1rem;
+    color: #666;
+}
+
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    background: #0d6efd;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.theme-toggle:hover {
+    background: #0b5ed7;
+}
