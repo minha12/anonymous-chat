@@ -161,6 +161,7 @@ $(function() {
     $('#boardsContainer').on('click', '.report-thread', function() {
         const board = $(this).data('board');
         const threadId = $(this).data('id');
+        const threadCard = $(this).closest('.thread-preview');
         
         $.ajax({
             type: 'PUT',
@@ -168,6 +169,12 @@ $(function() {
             data: { thread_id: threadId },
             success: function() {
                 showToast('Thread reported successfully');
+                // Disable the report button after successful report
+                threadCard.find('.report-thread').prop('disabled', true)
+                    .removeClass('btn-warning').addClass('btn-secondary');
+            },
+            error: function(err) {
+                showToast('Error reporting thread', 'danger');
             }
         });
     });
@@ -176,6 +183,7 @@ $(function() {
     $('#boardsContainer').on('click', '.delete-thread', function() {
         const board = $(this).data('board');
         const threadId = $(this).data('id');
+        const threadPreview = $(this).closest('.thread-preview');
         const password = prompt('Enter deletion password:');
         
         if (password) {
@@ -185,11 +193,21 @@ $(function() {
                 data: { thread_id: threadId, delete_password: password },
                 success: function(response) {
                     if (response === 'success') {
+                        // Fade out and remove the thread preview
+                        threadPreview.fadeOut(400, function() {
+                            $(this).remove();
+                            // If this was the last thread, reload the board to show empty state
+                            if (threadPreview.siblings('.thread-preview').length === 0) {
+                                loadBoards();
+                            }
+                        });
                         showToast('Thread deleted successfully');
-                        loadBoards();
                     } else {
                         showToast('Incorrect password', 'danger');
                     }
+                },
+                error: function(err) {
+                    showToast('Error deleting thread: ' + (err.responseJSON?.error || 'Unknown error'), 'danger');
                 }
             });
         }
