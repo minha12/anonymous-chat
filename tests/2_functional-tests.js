@@ -191,3 +191,36 @@ suite("Functional Tests", function() {
     });
   });
 });
+
+// Replace the existing after hook with this improved version
+after(function(done) {
+  // Set longer timeout for cleanup
+  this.timeout(10000);
+
+  const MongoClient = require('mongodb').MongoClient;
+  MongoClient.connect(process.env.DB)
+    .then(client => {
+      const db = client.db('anonymous_chat');
+      return db.collection('anon').drop()
+        .then(() => {
+          console.log('Test board "anon" successfully cleaned up');
+          client.close();
+          done();
+        })
+        .catch(err => {
+          if (err.message === 'ns not found') {
+            console.log('Collection already deleted');
+            client.close();
+            done();
+          } else {
+            console.error('Error dropping collection:', err);
+            client.close();
+            done(err);
+          }
+        });
+    })
+    .catch(err => {
+      console.error('Database connection error during cleanup:', err);
+      done(err);
+    });
+});
