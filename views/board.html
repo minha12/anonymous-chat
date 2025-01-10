@@ -18,9 +18,11 @@
 
     <div class="container mt-4">
         <!-- New Thread Form -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Create New Thread</h5>
+        <div class="mb-4">
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNewThread" aria-expanded="false" aria-controls="collapseNewThread">
+                Create New Thread
+            </button>
+            <div class="collapse mt-3" id="collapseNewThread">
                 <form id="newThread" method="post">
                     <div class="mb-3">
                         <textarea class="form-control" rows="3" name="text" placeholder="What's on your mind?" required></textarea>
