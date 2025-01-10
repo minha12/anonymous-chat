@@ -92,18 +92,59 @@ $(function() {
     });
 
     $('#boardDisplay').on('click', '.delete-thread', function() {
-        var threadId = $(this).data('id');
-        var password = prompt("Enter deletion password:");
+        const threadId = $(this).data('id');
+        const threadCard = $(this).closest('.thread-card');  // Get reference to the thread card
+        const password = prompt("Enter deletion password:");
+        
         if (password) {
             $.ajax({
                 type: "DELETE",
                 url: "/api/threads/"+currentBoard,
                 data: { thread_id: threadId, delete_password: password },
-                success: function(data) {
-                    showToast('Thread deleted successfully');
+                success: function(response) {
+                    if (response === "success") {
+                        // Remove the thread card from UI immediately
+                        threadCard.fadeOut(400, function() {
+                            $(this).remove();
+                        });
+                        showToast('Thread deleted successfully');
+                    } else {
+                        showToast('Incorrect password', 'danger');
+                    }
                 },
                 error: function(err) {
                     showToast('Error deleting thread: ' + (err.responseJSON?.error || 'Unknown error'), 'danger');
+                }
+            });
+        }
+    });
+
+    $('#boardDisplay').on('click', '.delete-reply', function() {
+        const threadId = $(this).data('thread');
+        const replyId = $(this).data('reply');
+        const replyCard = $(this).closest('.reply-card');  // Get reference to the reply card
+        const password = prompt("Enter deletion password:");
+        
+        if (password) {
+            $.ajax({
+                type: "DELETE",
+                url: "/api/replies/"+currentBoard,
+                data: { 
+                    thread_id: threadId, 
+                    reply_id: replyId, 
+                    delete_password: password 
+                },
+                success: function(response) {
+                    if (response.includes("success")) {
+                        // Update the reply text to [deleted]
+                        replyCard.find('.card-text').text('[deleted]');
+                        showToast('Reply deleted successfully');
+                    } else {
+                        showToast('Incorrect password', 'danger');
+                    }
+                },
+                error: function(err) {
+                    showToast('Error deleting reply: ' + (err.responseJSON?.error || 'Unknown error'), 'danger');
                 }
             });
         }
@@ -123,25 +164,6 @@ $(function() {
                 showToast('Error reporting reply', 'danger');
             }
         });
-    });
-
-    $('#boardDisplay').on('click', '.delete-reply', function() {
-        var threadId = $(this).data('thread');
-        var replyId = $(this).data('reply');
-        var password = prompt("Enter deletion password:");
-        if (password) {
-            $.ajax({
-                type: "DELETE",
-                url: "/api/replies/"+currentBoard,
-                data: { thread_id: threadId, reply_id: replyId, delete_password: password },
-                success: function(data) {
-                    showToast('Reply deleted successfully');
-                },
-                error: function(err) {
-                    showToast('Error deleting reply: ' + (err.responseJSON?.error || 'Unknown error'), 'danger');
-                }
-            });
-        }
     });
 
     $('#boardDisplay').on('submit', '.reply-form', function(e) {
