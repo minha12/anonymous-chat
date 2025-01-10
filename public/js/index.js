@@ -116,11 +116,43 @@ $(function() {
         const board = $(this).data('board');
         const threadId = $(this).data('thread');
         const formData = $(this).serialize() + '&thread_id=' + threadId;
+        const form = $(this);
 
         $.post('/api/replies/' + board, formData, function(response) {
             if (response.success) {
+                // Clear the form
+                form[0].reset();
+                
+                // Find the replies container for this specific thread
+                const repliesContainer = form.closest('.thread-preview').find('.replies');
+                
+                // Create new reply HTML
+                const newReplyHtml = `
+                    <div class="reply-preview border-start ps-2 mb-1">
+                        <small class="text-muted">
+                            <i class="bi bi-reply"></i> ${new Date(response.reply.created_on).toLocaleString()}
+                        </small>
+                        <p class="mb-1 small">${response.reply.text}</p>
+                    </div>
+                `;
+
+                // If there's no replies container yet, create one
+                if (repliesContainer.length === 0) {
+                    form.before(`
+                        <div class="replies ms-3 mb-2">
+                            ${newReplyHtml}
+                        </div>
+                    `);
+                } else {
+                    // Check if we need to remove the oldest reply (keep only 3)
+                    if (repliesContainer.children().length >= 3) {
+                        repliesContainer.children().first().remove();
+                    }
+                    // Add the new reply
+                    repliesContainer.append(newReplyHtml);
+                }
+
                 showToast('Reply posted successfully');
-                loadBoards();
             }
         });
     });
