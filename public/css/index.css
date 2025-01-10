@@ -1,0 +1,6 @@
+.api-method { font-weight: bold; padding: 2px 8px; border-radius: 4px; }
+.get { background: #e7f5ff; color: #1971c2; }
+.post { background: #ebfbee; color: #2b8a3e; }
+.put { background: #fff3bf; color: #94710b; }
+.delete { background: #fff5f5; color: #c92a2a; }
+.api-doc { border-left: 4px solid #dee2e6; padding: 1rem; margin: 1rem 0; }

@@ -1,0 +1,9 @@
+.reply-card { margin-bottom: 1rem; }
+.action-buttons { font-size: 0.8rem; }
+.meta-info { color: #6c757d; font-size: 0.875rem; }
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
