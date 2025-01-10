@@ -41,6 +41,21 @@ function createBoardCard(board) {
                 </div>
             </div>
             <p class="mb-1">${thread.text}</p>
+            
+            <!-- Display Replies -->
+            ${thread.replies && thread.replies.length > 0 ? `
+                <div class="replies ms-3 mb-2">
+                    ${thread.replies.map(reply => `
+                        <div class="reply-preview border-start ps-2 mb-1">
+                            <small class="text-muted">
+                                <i class="bi bi-reply"></i> ${new Date(reply.created_on).toLocaleString()}
+                            </small>
+                            <p class="mb-1 small">${reply.text}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            
             <div class="reply-form mb-2">
                 <form class="d-flex gap-2" data-board="${board.name}" data-thread="${thread._id}">
                     <input type="text" class="form-control form-control-sm" name="text" placeholder="Quick reply" required>
