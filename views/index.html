@@ -7,6 +7,31 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/public/css/index.css" rel="stylesheet">
+    <style>
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        @media (min-width: 992px) {
+            .board-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (min-width: 1200px) {
+            .board-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .board-card {
+            height: 100%;
+        }
+        .thread-preview {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -28,35 +53,22 @@
         <div class="tab-content mt-3">
             <!-- Chat Tab -->
             <div class="tab-pane fade show active" id="chat" role="tabpanel">
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Popular Boards</h5>
-                                <div class="list-group" id="boardsList">
-                                    <!-- Boards will be loaded dynamically -->
-                                    <div class="text-center p-3">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
+                <div class="row mb-4">
+                    <div class="col">
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="card-title">Create New Board</h5>
-                                <form id="newBoard">
-                                    <div class="mb-3">
-                                        <input type="text" class="form-control" placeholder="Board name" required>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Create Board</button>
+                                <form id="newBoard" class="d-flex">
+                                    <input type="text" class="form-control me-2" name="name" placeholder="Board name" required>
+                                    <button type="submit" class="btn btn-primary">Create</button>
                                 </form>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="board-grid" id="boardsContainer">
+                    <!-- Boards will be dynamically inserted here -->
                 </div>
             </div>
 

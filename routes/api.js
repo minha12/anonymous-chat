@@ -14,6 +14,8 @@ module.exports = function (app) {
     .get(threadHandler.getBoardStats)
     .post(threadHandler.createBoard)
   
+  app.get('/api/boards/with-threads', threadHandler.getBoardsWithTopThreads.bind(threadHandler));
+
   app.route('/api/threads/:board')
     .get(threadHandler.threadList)
     .post(threadHandler.newThread)

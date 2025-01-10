@@ -1,97 +1,150 @@
+function showToast(message, type = 'success') {
+    const toastHtml = `
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-${type} text-white">
+                <strong class="me-auto">${type === 'success' ? 'Success' : 'Error'}</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">${message}</div>
+        </div>
+    `;
+    
+    const toastContainer = $('.toast-container');
+    toastContainer.append(toastHtml);
+    
+    const toastElement = toastContainer.find('.toast').last();
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    toastElement.on('hidden.bs.toast', function() {
+        $(this).remove();
+    });
+}
+
+function createBoardCard(board) {
+    const threadsHtml = board.threads.map(thread => `
+        <div class="thread-preview">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <small class="text-muted">
+                        <i class="bi bi-hash"></i> ${thread._id}
+                        <i class="bi bi-clock ms-2"></i> ${new Date(thread.created_on).toLocaleString()}
+                    </small>
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-warning btn-sm report-thread" data-board="${board.name}" data-id="${thread._id}">
+                        <i class="bi bi-flag"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm delete-thread" data-board="${board.name}" data-id="${thread._id}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <p class="mb-1">${thread.text}</p>
+            <div class="reply-form mb-2">
+                <form class="d-flex gap-2" data-board="${board.name}" data-thread="${thread._id}">
+                    <input type="text" class="form-control form-control-sm" name="text" placeholder="Quick reply" required>
+                    <input type="password" class="form-control form-control-sm" name="delete_password" placeholder="Password" required>
+                    <button type="submit" class="btn btn-primary btn-sm">Reply</button>
+                </form>
+            </div>
+        </div>
+    `).join('');
+
+    return `
+        <div class="board-card card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="/b/${board.name}/" class="text-decoration-none">
+                        ${board.name}
+                    </a>
+                </h5>
+                ${threadsHtml}
+            </div>
+        </div>
+    `;
+}
+
 $(function() {
-    // Load boards and their stats
     function loadBoards() {
-        $.get('/api/boards', function(boards) {
-            const boardsList = boards.map(board => `
-                <a href="/b/${board.name}/" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                    ${board.name}
-                    <span class="badge bg-primary rounded-pill">${board.threadCount}</span>
-                </a>
-            `).join('');
-            $('#boardsList').html(boardsList || '<p class="text-center p-3">No boards yet</p>');
-        });
+        $.get('/api/boards/with-threads')
+            .done(function(boards) {
+                if (boards && boards.length > 0) {
+                    const boardsHtml = boards.map(createBoardCard).join('');
+                    $('#boardsContainer').html(boardsHtml);
+                } else {
+                    $('#boardsContainer').html('<div class="alert alert-info">No boards found. Create one to get started!</div>');
+                }
+            })
+            .fail(function(err) {
+                console.error('Error loading boards:', err);
+                $('#boardsContainer').html('<div class="alert alert-danger">Error loading boards. Please try again later.</div>');
+            });
     }
 
-    // Handle board creation
-    $('#newBoard').submit(function(e) {
-        e.preventDefault();
-        const boardName = $(this).find('input').val();
-        $.ajax({
-            type: 'POST',
-            url: '/api/boards',
-            data: { name: boardName },
-            success: function(response) {
-                if (response.success) {
-                    window.location.href = `/b/${response.board}/`;
-                }
-            },
-            error: function(err) {
-                alert('Error creating board: ' + err.responseJSON?.error || 'Unknown error');
-            }
-        });
-    });
-
-    // Load boards on page load
     loadBoards();
 
-    $('#newThread').submit(function(){
-        var board = $('#board1').val();
-        $(this).attr('action', "/api/threads/" + board);
-    });
-    $('#newReply').submit(function(){
-        var board = $('#board4').val();
-        $(this).attr('action', "/api/replies/" + board);
-    });
-    $('#reportThread').submit(function(e){
-        var url = "/api/threads/"+$('#board2').val();
-        $.ajax({
-            type: "PUT",
-            url: url,
-            data: $(this).serialize(),
-            success: function(data)
-            {
-                alert(data);
+    $('#newBoard').submit(function(e) {
+        e.preventDefault();
+        $.post('/api/boards', $(this).serialize(), function(response) {
+            if (response.success) {
+                showToast('Board created successfully');
+                loadBoards();
+                $('#newBoard')[0].reset();
             }
         });
-        e.preventDefault();
     });
-    $('#deleteThread').submit(function(e){
-        var url = "/api/threads/"+$('#board3').val();
-        $.ajax({
-            type: "DELETE",
-            url: url,
-            data: $(this).serialize(),
-            success: function(data)
-            {
-                alert(data);
+
+    // Event delegation for dynamic elements
+    $('#boardsContainer').on('submit', '.reply-form form', function(e) {
+        e.preventDefault();
+        const board = $(this).data('board');
+        const threadId = $(this).data('thread');
+        const formData = $(this).serialize() + '&thread_id=' + threadId;
+
+        $.post('/api/replies/' + board, formData, function(response) {
+            if (response.success) {
+                showToast('Reply posted successfully');
+                loadBoards();
             }
         });
-        e.preventDefault();
     });
-    $('#reportReply').submit(function(e){
-        var url = "/api/replies/"+$('#board5').val();
+
+    // Handle thread reporting
+    $('#boardsContainer').on('click', '.report-thread', function() {
+        const board = $(this).data('board');
+        const threadId = $(this).data('id');
+        
         $.ajax({
-            type: "PUT",
-            url: url,
-            data: $(this).serialize(),
-            success: function(data)
-            {
-                alert(data);
+            type: 'PUT',
+            url: '/api/threads/' + board,
+            data: { thread_id: threadId },
+            success: function() {
+                showToast('Thread reported successfully');
             }
         });
-        e.preventDefault();
     });
-    $('#deleteReply').submit(function(e){
-        var url = "/api/replies/"+$('#board6').val();
-        $.ajax({
-            type: "DELETE",
-            url: url,
-            data: $(this).serialize(),
-            success: function(data)
-            {
-                alert(data);
-            }
-        });
-        e.preventDefault();
+
+    // Handle thread deletion
+    $('#boardsContainer').on('click', '.delete-thread', function() {
+        const board = $(this).data('board');
+        const threadId = $(this).data('id');
+        const password = prompt('Enter deletion password:');
+        
+        if (password) {
+            $.ajax({
+                type: 'DELETE',
+                url: '/api/threads/' + board,
+                data: { thread_id: threadId, delete_password: password },
+                success: function(response) {
+                    if (response === 'success') {
+                        showToast('Thread deleted successfully');
+                        loadBoards();
+                    } else {
+                        showToast('Incorrect password', 'danger');
+                    }
+                }
+            });
+        }
     });
 });

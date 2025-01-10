@@ -153,6 +153,63 @@ function ThreadsHandler() {
       res.status(500).json({ error: 'Error creating board' });
     }
   };
+
+  this.getBoardsWithTopThreads = async function(req, res) {
+    try {
+      const db = await connectDB();
+      const collections = await db.listCollections().toArray();
+      const boardsData = await Promise.all(
+        collections
+          .filter(coll => !coll.name.startsWith('system.'))
+          .map(async (coll) => {
+            const topThreads = await this.getTopThreadsForBoard(coll.name);
+            return {
+              name: coll.name,
+              threads: topThreads
+            };
+          })
+      );
+      res.json(boardsData);
+    } catch (err) {
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Error accessing database' });
+    }
+  };
 }
+
+// Move this outside of ThreadsHandler but before module.exports
+ThreadsHandler.prototype.getTopThreadsForBoard = async function(boardName) {
+  try {
+    const db = await connectDB();
+    const collection = db.collection(boardName);
+    const threads = await collection
+      .find(
+        {},
+        {
+          projection: {
+            reported: 0,
+            delete_password: 0,
+            "replies.delete_password": 0,
+            "replies.reported": 0
+          }
+        }
+      )
+      .sort({ bumped_on: -1 })
+      .limit(3)
+      .toArray();
+
+    threads.forEach(thread => {
+      thread.replycount = thread.replies.length;
+      if (thread.replies.length > 3) {
+        thread.replies = thread.replies.slice(-3);
+      }
+    });
+
+    return threads;
+  } catch (err) {
+    console.error('Error fetching top threads:', err);
+    return [];
+  }
+};
 
 module.exports = ThreadsHandler;
