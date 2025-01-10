@@ -62,23 +62,218 @@
 
             <!-- API Documentation Tab -->
             <div class="tab-pane fade" id="api" role="tabpanel">
-                <h2>API Documentation</h2>
+                <h2>🔌 API Documentation</h2>
                 
-                <div class="api-doc">
-                    <span class="api-method post">POST</span>
-                    <code>/api/threads/{board}</code>
-                    <p class="mt-2">Create a new thread on a specific board.</p>
-                    <h6>Request Body:</h6>
-                    <pre><code>{
+                <div class="mb-4">
+                    <h3>🛡️ Security Features</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <i class="bi bi-shield-check"></i> IFrame Protection: Site only loads in iFrames on own pages
+                        </li>
+                        <li class="list-group-item">
+                            <i class="bi bi-shield-check"></i> DNS Protection: DNS prefetching disabled
+                        </li>
+                        <li class="list-group-item">
+                            <i class="bi bi-shield-check"></i> Referrer Policy: Only sends referrer for own pages
+                        </li>
+                    </ul>
+                </div>
+
+                <h3>📝 Thread Operations</h3>
+                
+                <div class="api-endpoint">
+                    <div class="method-url">
+                        <span class="api-method post">POST</span>
+                        <code class="url-path">/api/threads/{board}</code>
+                    </div>
+                    <p>Create a new thread on a specific board.</p>
+                    
+                    <div class="api-body-section">
+                        <h6>Request Body</h6>
+                        <pre><code>{
   "text": "string",
   "delete_password": "string"
 }</code></pre>
+                    </div>
+
+                    <div class="api-body-section">
+                        <h6>Response</h6>
+                        <pre><code>{
+  "_id": "string",
+  "text": "string",
+  "created_on": "date",
+  "bumped_on": "date",
+  "replies": []
+}</code></pre>
+                    </div>
+
+                    <div class="api-note">
+                        <i class="bi bi-info-circle"></i> Redirects to /b/{board} on success
+                    </div>
                 </div>
 
-                <!-- More API documentation entries... -->
+                <div class="api-endpoint">
+                    <div class="method-url">
+                        <span class="api-method get">GET</span>
+                        <code class="url-path">/api/threads/{board}</code>
+                    </div>
+                    <p>Get the 10 most recently bumped threads with latest 3 replies.</p>
+                    <div class="api-body-section">
+                        <h6>Response</h6>
+                        <pre><code>[{
+  "_id": "string",
+  "text": "string",
+  "created_on": "date",
+  "bumped_on": "date",
+  "replies": [{
+    "_id": "string",
+    "text": "string",
+    "created_on": "date"
+  }]
+}]</code></pre>
+                    </div>
+                    <div class="api-note">
+                        <i class="bi bi-info-circle"></i> Excludes reported and delete_password fields
+                    </div>
+                </div>
+
+                <div class="api-endpoint">
+                    <div class="method-url">
+                        <span class="api-method delete">DELETE</span>
+                        <code class="url-path">/api/threads/{board}</code>
+                    </div>
+                    <p>Delete a thread completely.</p>
+                    <div class="api-body-section">
+                        <h6>Request Body</h6>
+                        <pre><code>{
+  "thread_id": "string",
+  "delete_password": "string"
+}</code></pre>
+                    </div>
+                    <div class="api-body-section">
+                        <h6>Response</h6>
+                        <p>Text response: "success" or "incorrect password"</p>
+                    </div>
+                </div>
+
+                <div class="api-endpoint">
+                    <div class="method-url">
+                        <span class="api-method put">PUT</span>
+                        <code class="url-path">/api/threads/{board}</code>
+                    </div>
+                    <p>Report a thread.</p>
+                    <div class="api-body-section">
+                        <h6>Request Body</h6>
+                        <pre><code>{
+  "thread_id": "string"
+}</code></pre>
+                    </div>
+                    <div class="api-body-section">
+                        <h6>Response</h6>
+                        <p>Text response: "success"</p>
+                    </div>
+                </div>
+
+                <h3>💬 Reply Operations</h3>
+
+                <div class="api-endpoint">
+                    <div class="method-url">
+                        <span class="api-method post">POST</span>
+                        <code class="url-path">/api/replies/{board}</code>
+                    </div>
+                    <p>Add a reply to a thread.</p>
+                    <div class="api-body-section">
+                        <h6>Request Body</h6>
+                        <pre><code>{
+  "thread_id": "string",
+  "text": "string",
+  "delete_password": "string"
+}</code></pre>
+                    </div>
+                    <div class="api-note">
+                        <i class="bi bi-info-circle"></i> Updates thread's bumped_on date
+                        <br>
+                        <i class="bi bi-arrow-return-right"></i> Redirects to /b/{board}/{thread_id}
+                    </div>
+                </div>
+
+                <div class="api-endpoint">
+                    <div class="method-url">
+                        <span class="api-method get">GET</span>
+                        <code class="url-path">/api/replies/{board}?thread_id={thread_id}</code>
+                    </div>
+                    <p>Get a thread with all replies.</p>
+                    <div class="api-body-section">
+                        <h6>Response</h6>
+                        <pre><code>{
+  "_id": "string",
+  "text": "string",
+  "created_on": "date",
+  "bumped_on": "date",
+  "replies": [{
+    "_id": "string",
+    "text": "string",
+    "created_on": "date"
+  }]
+}</code></pre>
+                    </div>
+                    <div class="api-note">
+                        <i class="bi bi-info-circle"></i> Excludes reported and delete_password fields
+                    </div>
+                </div>
+
+                <div class="api-endpoint">
+                    <div class="method-url">
+                        <span class="api-method delete">DELETE</span>
+                        <code class="url-path">/api/replies/{board}</code>
+                    </div>
+                    <p>Delete a reply (changes text to '[deleted]').</p>
+                    <div class="api-body-section">
+                        <h6>Request Body</h6>
+                        <pre><code>{
+  "thread_id": "string",
+  "reply_id": "string",
+  "delete_password": "string"
+}</code></pre>
+                    </div>
+                    <div class="api-body-section">
+                        <h6>Response</h6>
+                        <p>Text response: "success" or "incorrect password"</p>
+                    </div>
+                </div>
+
+                <div class="api-endpoint">
+                    <div class="method-url">
+                        <span class="api-method put">PUT</span>
+                        <code class="url-path">/api/replies/{board}</code>
+                    </div>
+                    <p>Report a reply.</p>
+                    <div class="api-body-section">
+                        <h6>Request Body</h6>
+                        <pre><code>{
+  "thread_id": "string",
+  "reply_id": "string"
+}</code></pre>
+                    </div>
+                    <div class="api-body-section">
+                        <h6>Response</h6>
+                        <p>Text response: "success"</p>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <h3>🧪 Testing</h3>
+                    <p>Complete functional tests are available that verify all routes and responses.</p>
+                    <pre><code>npm test</code></pre>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle btn" id="themeToggle">
+        <i class="bi bi-sun-fill"></i>
+    </button>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
