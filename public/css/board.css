@@ -11,3 +11,48 @@
     right: 20px;
     z-index: 1000;
 }
+
+/* Dark theme styles */
+body.bg-dark.text-white {
+    /* Thread cards */
+    .thread-card {
+        background-color: #2d2d2d;
+        border-color: #444;
+    }
+
+    /* Form elements */
+    .form-control {
+        background-color: #2d2d2d;
+        border-color: #444;
+        color: #fff;
+    }
+
+    .form-control:focus {
+        background-color: #333;
+        color: #fff;
+        border-color: #0d6efd;
+    }
+
+    /* Reply cards */
+    .reply-card {
+        background-color: #262626;
+        border-color: #444;
+    }
+
+    /* Text colors */
+    .text-muted {
+        color: #adb5bd !important;
+    }
+
+    /* Placeholder text */
+    .form-control::placeholder {
+        color: #888;
+    }
+
+    /* Fix thread text colors */
+    .card-text,
+    .thread-card .card-text,
+    .reply-card .card-text {
+        color: #ddd;
+    }
+}

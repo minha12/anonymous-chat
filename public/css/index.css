@@ -59,3 +59,107 @@
     background-color: #e9ecef;  /* Light gray tone */
     border-radius: 4px;
 }
+
+/* Darken the method-url boxes */
+body.bg-dark.text-white .method-url {
+  background-color: #333;
+  color: #fff;
+}
+
+/* Darken card-body */
+body.bg-dark.text-white .card-body {
+  background-color: #2d2d2d;
+  color: #ddd;
+}
+
+/* Dark theme adjustments */
+body.bg-dark.text-white {
+    /* Input fields */
+    .form-control {
+        background-color: #2d2d2d;
+        border-color: #444;
+        color: #fff;
+    }
+    
+    .form-control:focus {
+        background-color: #333;
+        color: #fff;
+        border-color: #0d6efd;
+    }
+
+    /* Cards and thread content */
+    .card {
+        background-color: #2d2d2d;
+        border-color: #444;
+    }
+
+    .thread-preview, .reply-preview {
+        border-color: #444;
+    }
+
+    .thread-meta, .text-muted {
+        color: #adb5bd !important;
+    }
+
+    /* Link colors */
+    a:not(.btn) {
+        color: #6ea8fe;
+    }
+
+    a:not(.btn):hover {
+        color: #9ec5fe;
+    }
+
+    /* Code blocks and pre */
+    pre, code {
+        background-color: #1a1a1a;
+        border-color: #444;
+        color: #e9ecef;
+    }
+
+    /* Placeholder text color */
+    .form-control::placeholder {
+        color: #888;
+    }
+
+    /* Fix active tab background */
+    .nav-tabs .nav-link.active {
+        background-color: transparent;
+        color: #fff;
+        border-color: #444;
+    }
+
+    .nav-tabs {
+        border-bottom-color: #444;
+    }
+
+    /* Fix API documentation list items */
+    .list-group-item {
+        background-color: #2d2d2d;
+        border-color: #444;
+        color: #ddd;
+    }
+
+    /* Fix thread text color in boards */
+    .thread-card .card-text,
+    .reply-card .card-text {
+        color: #ddd;
+    }
+
+    /* Fix tab hover states */
+    .nav-tabs .nav-link:hover {
+        border-color: #444;
+        isolation: isolate;
+    }
+
+    /* Make navbar brand text white */
+    .navbar-brand {
+        color: #fff !important;
+    }
+
+    /* Update tab-pane to be transparent */
+    .tab-pane {
+        background-color: transparent;
+        color: #ddd;
+    }
+}
