@@ -54,3 +54,8 @@
 .theme-toggle:hover {
     background: #0b5ed7;
 }
+
+.card-body {
+    background-color: #e9ecef;  /* Light gray tone */
+    border-radius: 4px;
+}

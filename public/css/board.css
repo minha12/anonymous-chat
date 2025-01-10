@@ -1,4 +1,7 @@
-.thread-card { margin-bottom: 1rem; }
+.thread-card { 
+    margin-bottom: 1rem; 
+    background-color: #dee2e6; /* Medium gray tone */
+}
 .reply-card { margin-left: 2rem; background: #f8f9fa; }
 .action-buttons { font-size: 0.8rem; }
 .thread-meta { color: #6c757d; font-size: 0.875rem; }
